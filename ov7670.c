@@ -88,10 +88,14 @@ uint8_t rdReg(uint8_t reg){
 	_delay_ms(1);
 	return dat;
 }
-static void wrSensorRegs8_8(const struct regval_list reglist[]){
-	uint8_t reg_addr,reg_val;
+
+static void wrSensorRegs8_8(const struct regval_list reglist[])
+{
+	uint8_t reg_addr=0,reg_val=0;
 	const struct regval_list *next = reglist;
-	while ((reg_addr != 0xff) | (reg_val != 0xff)){
+
+	while( (reg_addr != 0xff) && (reg_val != 0xff) )
+	{
 		reg_addr = pgm_read_byte(&next->reg_num);
 		reg_val = pgm_read_byte(&next->value);
 		wrReg(reg_addr, reg_val);
