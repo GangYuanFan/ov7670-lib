@@ -1,3 +1,14 @@
+/*
+
+	OV7670 AVR Library v0.1
+
+	Original Code by: ComputerNerd (github.com/ComputerNerd)
+	based on Linux code?
+
+	Changes done to improve code readability and functionality.
+	-- Jean-François Mousinho
+*/
+
 #include <stdint.h>
 #include <avr/io.h>
 #include <util/twi.h>
