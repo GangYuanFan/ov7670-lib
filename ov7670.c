@@ -1,4 +1,3 @@
-#define F_CPU 16000000UL
 #include <stdint.h>
 #include <avr/io.h>
 #include <util/twi.h>
@@ -6,19 +5,35 @@
 #include <avr/pgmspace.h>
 #include "ov7670.h"
 #include "ov7670_regs.h"
-static void error_led(void){
-	DDRB|=32;//make sure led is output
-	while(1){//wait for reset
-		PORTB^=32;// toggle led
-		_delay_ms(100);
-	}
+
+static void error_led(void) {
+/*  pinMode(13, OUTPUT);
+  while(1) {//wait for reset
+    digitalWrite(13, HIGH);
+      _delay_ms(100);
+   }*/
 }
-static void twiStart(void){
-	TWCR=_BV(TWINT)| _BV(TWSTA)| _BV(TWEN);//send start
-	while(!(TWCR & (1<<TWINT)));//wait for start to be transmitted
-	if((TWSR & 0xF8)!=TW_START)
+
+//
+// Send TWI START, must be done before all transmissions.
+//
+static void twiStart(void)
+{
+	// TWEN Enable SDA/SCL ports for TWI.
+	// TWSTA Start as Master on the 2-wire serial bus
+	// TWINT Clear TWINT flag, then if set to 1 means waiting for software response.
+	TWCR= (1 << TWINT) | (1 << TWSTA) | (1 << TWEN);
+
+	// Wait for TWINT=1 means that start has completed.
+	while( !(TWCR & (1<<TWINT)) )
+		;
+
+	// When TWI is ready, status will be 0x08 (TW_START).
+	if( (TWSR & 0xF8) != TW_START )
 		error_led();
 }
+
+
 static void twiWriteByte(uint8_t DATA,uint8_t type){
 	TWDR = DATA;
 	TWCR = _BV(TWINT) | _BV(TWEN);
@@ -33,6 +48,7 @@ static void twiAddr(uint8_t addr,uint8_t typeTWI){
 	if ((TWSR & 0xF8) != typeTWI)
 		error_led();
 }
+
 void wrReg(uint8_t reg,uint8_t dat){
 	//send start condition
 	twiStart();
@@ -42,6 +58,7 @@ void wrReg(uint8_t reg,uint8_t dat){
 	TWCR = (1<<TWINT)|(1<<TWEN)|(1<<TWSTO);//send stop
 	_delay_ms(1);
 }
+
 static uint8_t twiRd(uint8_t nack){
 	if (nack){
 		TWCR=_BV(TWINT) | _BV(TWEN);
